@@ -1,0 +1,203 @@
+syntax = "proto3";
+
+package kvstore;
+
+service DBService {
+  rpc AddUser (AddUserRequest) returns (AddUserResponse);
+  rpc FetchUser (FetchUserRequest) returns (FetchUserResponse);
+  rpc AddService (AddServiceRequest) returns (AddServiceResponse);
+  rpc FetchService (FetchServiceRequest) returns (FetchServiceResponse);
+  rpc FetchAllUsers (FetchAllUsersRequest) returns (FetchAllUsersResponse);
+  rpc DeleteDummyUsers (DeleteDummyUsersRequest) returns (DeleteDummyUsersResponse);
+}
+
+message AddUserRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message AddUserResponse {
+  string status = 1;
+}
+
+message FetchUserRequest {
+  string username = 1;
+}
+
+message FetchUserResponse {
+  int32 status = 1;
+  string username = 2;
+  string password = 3;
+  string message = 4;
+}
+
+message AddServiceRequest {
+  string name = 1;
+  string secret_key = 2;
+}
+
+message AddServiceResponse {
+  string status = 1;
+}
+
+message FetchServiceRequest {
+  string name = 1;
+}
+
+message FetchServiceResponse {
+  int32 status = 1;
+  string name = 2;
+  string secret_key = 3;
+  string message = 4;
+}
+
+message FetchAllUsersRequest {}
+
+message FetchAllUsersResponse {
+  repeated User users = 1;
+}
+
+message DeleteDummyUsersRequest {}
+
+message DeleteDummyUsersResponse {
+  string status = 1;
+}
+
+message User {
+  string username = 1;
+  string password = 2;
+}
+
+service EncryptionService {
+    rpc Encrypt(EncryptRequest) returns (EncryptResponse);
+    rpc Decrypt(DecryptRequest) returns (DecryptResponse);
+}
+
+message EncryptRequest {
+    string payload = 1;
+    string secret_key = 2;
+    string master_key = 3;
+    string context = 4;
+}
+
+message EncryptResponse {
+    string encrypted_payload = 1;
+}
+
+message DecryptRequest {
+    string encrypted_payload = 1;
+    string secret_key = 2;
+    string master_key = 3;
+    string context = 4;
+}
+
+message DecryptResponse {
+    string decrypted_payload = 1;
+}
+
+// Service definition for the Authentication Server
+service AuthenticationService {
+    rpc Login(AuthenticateRequest) returns (LoginResponse);
+}
+
+// Define the request message for the Login service
+message LoginRequest {
+    string username = 1;
+    string service = 2;
+    int64 lifetime_of_tgt = 3;
+}
+
+// Define the response message for the Login service
+
+
+// Define the payload containing authentication acknowledgment and ticket-granting ticket
+message AckAndTgtPayload {
+    string ack = 1;
+    string tgt = 2;
+}
+
+message LoginResponse {
+    int32 status = 1;
+    string message = 2;
+    string payload_ack = 3;
+    string payload_tgt = 4;
+}
+
+// Service definition for the Protected Service
+service ProtectedService {
+    rpc Authenticate (AuthenticateRequest) returns (AuthResponse);
+}
+
+//service ProtectedService {
+//    rpc Authenticate (AuthenticateRequest) returns (AuthResponse);
+//}
+
+// Define the request message for the Authenticate service
+message AuthRequest {
+    string service_ticket = 1;
+    string username = 2;
+}
+
+// Define the response message for the Authenticate service
+
+// Service definition for the Ticket Granting Service
+service TicketGrantingService {
+    rpc ProcessTicketGrantingRequest(TicketGrantingRequest) returns (TicketGrantingResponse);
+}
+
+// Define the request message
+message TicketGrantingRequest {
+    string authenticator = 1;
+    string tgt = 2;
+    string tgr = 3;
+}
+
+// Define the response message
+message TicketGrantingResponse {
+    int32 status = 1;
+    string message = 2;
+    string tgs_ack_ticket = 3;
+    string service_ticket = 4;
+}
+
+message AuthenticateResponse {
+  int32 status = 1;
+  string message = 2;
+  string payload_ack = 3;
+  string payload_tgt = 4;
+}
+
+message AuthenticateRequest {
+    string username = 1;
+    string service_name = 2;
+    string lifetime_of_tgt = 3;
+}
+
+message AuthResponsePayload {
+    string message = 1;
+    string service_session_key = 2;
+}
+
+message AuthResponse {
+    int32 status = 1;
+    bytes payload = 2;  // Serialized AuthResponsePayload
+}
+
+service KDCService {
+    rpc Authenticate (AuthenticateRequest) returns (AuthenticateResponse);
+    rpc GetServiceTicket (ServiceTicketRequest) returns (ServiceTicketResponse);
+}
+
+// Define request and response messages for the Ticket Granting Service (TGS)
+message ServiceTicketRequest {
+    string tgt = 1;
+    bytes authenticator = 2;
+    string tgr = 3;
+}
+
+message ServiceTicketResponse {
+    int32 status = 1;
+    string message = 2;
+    string tgs_ack_ticket = 3;
+    string service_ticket = 4;
+}
